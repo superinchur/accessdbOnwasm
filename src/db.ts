@@ -3,6 +3,8 @@
  * Tables are loaded lazily — only when first queried or clicked.
  */
 import initSqlJs, { Database } from 'sql.js'
+// Import WASM as a Vite asset URL — avoids esbuild mangling the binary path
+import sqlWasmUrl from 'sql.js/dist/sql-wasm.wasm?url'
 import MDBReader from 'mdb-reader'
 
 let db: Database | null = null
@@ -11,7 +13,9 @@ const loadedTables = new Set<string>()
 
 export async function initSqlEngine(): Promise<void> {
   const SQL = await initSqlJs({
-    locateFile: (file: string) => `/${file}`,
+    // Use the Vite-resolved asset URL so the path is always correct
+    // regardless of dev/prod or how sql.js is bundled
+    locateFile: () => sqlWasmUrl,
   })
   db = new SQL.Database()
 }
