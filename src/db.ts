@@ -2,17 +2,27 @@
  * Bridge: mdb-reader → sql.js in-memory SQLite
  * Tables are loaded lazily — only when first queried or clicked.
  */
-import initSqlJs, { Database } from 'sql.js'
+import initSqlJs, { Database, SqlJsStatic } from 'sql.js'
 // Import WASM as a Vite asset URL — avoids esbuild mangling the binary path
 import sqlWasmUrl from 'sql.js/dist/sql-wasm.wasm?url'
 import MDBReader from 'mdb-reader'
 
+let SQL: SqlJsStatic | null = null
 let db: Database | null = null
 let mdb: MDBReader | null = null
 const loadedTables = new Set<string>()
 
+/**
+ * Strip backticks from an identifier to prevent SQLite backtick-quoting injection.
+ * Backtick is the only character that can break out of `...`-quoted SQLite identifiers.
+ * MDB names may legitimately contain spaces and special chars — all are safe except `.
+ */
+function safeId(name: string): string {
+  return name.replace(/`/g, '')
+}
+
 export async function initSqlEngine(): Promise<void> {
-  const SQL = await initSqlJs({
+  SQL = await initSqlJs({
     // Use the Vite-resolved asset URL so the path is always correct
     // regardless of dev/prod or how sql.js is bundled
     locateFile: () => sqlWasmUrl,
@@ -21,18 +31,15 @@ export async function initSqlEngine(): Promise<void> {
 }
 
 export function loadMdbFile(buffer: ArrayBuffer): string[] {
+  // Close old DB and free WASM heap memory before opening a new file.
+  // This also guarantees no stale tables from the previous file remain.
+  if (db) {
+    db.close()
+    db = SQL ? new SQL.Database() : null
+  }
   // mdb-reader expects a Buffer (Node) or Uint8Array
   mdb = new MDBReader(Buffer.from(buffer))
   loadedTables.clear()
-  if (db) {
-    // Drop all existing tables from previous file
-    const tables = db.exec("SELECT name FROM sqlite_master WHERE type='table'")
-    if (tables.length && tables[0].values) {
-      for (const [name] of tables[0].values) {
-        db.run(`DROP TABLE IF EXISTS \`${name}\``)
-      }
-    }
-  }
   return mdb.getTableNames()
 }
 
@@ -42,7 +49,7 @@ export async function ensureTableLoaded(
 ): Promise<{ rowCount: number }> {
   if (!db || !mdb) throw new Error('Engine not initialized')
   if (loadedTables.has(tableName)) {
-    const res = db.exec(`SELECT COUNT(*) FROM \`${tableName}\``)
+    const res = db.exec(`SELECT COUNT(*) FROM \`${safeId(tableName)}\``)
     const count = res[0]?.values[0]?.[0] as number ?? 0
     return { rowCount: count }
   }
@@ -50,10 +57,10 @@ export async function ensureTableLoaded(
   const table = mdb.getTable(tableName)
   const columns = table.getColumnNames()
   const columnDefs = columns
-    .map(c => `\`${c}\` TEXT`)
+    .map(c => `\`${safeId(c)}\` TEXT`)
     .join(', ')
 
-  db.run(`CREATE TABLE IF NOT EXISTS \`${tableName}\` (${columnDefs})`)
+  db.run(`CREATE TABLE IF NOT EXISTS \`${safeId(tableName)}\` (${columnDefs})`)
 
   const rows = table.getData()
   const CHUNK = 500
@@ -71,7 +78,7 @@ export async function ensureTableLoaded(
         return String(v)
       })
       db.run(
-        `INSERT INTO \`${tableName}\` (${columns.map(c => `\`${c}\``).join(', ')}) VALUES (${placeholders})`,
+        `INSERT INTO \`${safeId(tableName)}\` (${columns.map(c => `\`${safeId(c)}\``).join(', ')}) VALUES (${placeholders})`,
         values,
       )
     }
