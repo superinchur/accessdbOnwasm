@@ -8,7 +8,7 @@ export default defineConfig({
   clearScreen: false,
 
   server: {
-    port: 5173,
+    port: 1420,
     // Tauri expects a fixed port; fail fast if it's taken
     strictPort: true,
     // Force IPv4 — Node 17+ on Windows resolves localhost to ::1 (IPv6)
