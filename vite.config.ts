@@ -1,8 +1,13 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    // Polyfill Node.js globals (Buffer, process, etc.) for mdb-reader in browser/WebView2
+    nodePolyfills({ include: ['buffer', 'process'] }),
+  ],
 
   // Tauri: don't clear Rust's log output in the terminal
   clearScreen: false,
@@ -28,11 +33,12 @@ export default defineConfig({
   },
 
   optimizeDeps: {
-    exclude: ['sql.js'],
+    // sql.js must be pre-bundled (CJS→ESM) so the default import works.
+    include: ['sql.js'],
+    // Prevent esbuild from trying to bundle the WASM binary itself
+    exclude: ['sql.js/dist/sql-wasm.wasm'],
   },
 
-  define: {
-    // Some libraries check for process.env
-    'process.env': {},
-  },
+  // Treat .wasm files as static assets so Vite gives them a stable URL
+  assetsInclude: ['**/*.wasm'],
 })
