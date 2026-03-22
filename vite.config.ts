@@ -3,9 +3,34 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
+
+  // Tauri: don't clear Rust's log output in the terminal
+  clearScreen: false,
+
+  server: {
+    port: 5173,
+    // Tauri expects a fixed port; fail fast if it's taken
+    strictPort: true,
+    // Force IPv4 — Node 17+ on Windows resolves localhost to ::1 (IPv6)
+    // which is often blocked; 127.0.0.1 is always available
+    host: '127.0.0.1',
+  },
+
+  // Expose TAURI_ENV_* vars (platform, debug flag, etc.) to the frontend
+  envPrefix: ['VITE_', 'TAURI_'],
+
+  build: {
+    // WebView2 (Windows) is Chromium 105+
+    target: 'chrome105',
+    // Disable minification in debug builds so DevTools are usable
+    minify: !process.env.TAURI_ENV_DEBUG ? 'esbuild' : false,
+    sourcemap: !!process.env.TAURI_ENV_DEBUG,
+  },
+
   optimizeDeps: {
     exclude: ['sql.js'],
   },
+
   define: {
     // Some libraries check for process.env
     'process.env': {},
