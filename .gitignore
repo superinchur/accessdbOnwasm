@@ -2,3 +2,8 @@ node_modules/
 dist/
 .gstack/
 *.local
+# Bridge binary (built by npm run build:bridge, not committed)
+src-tauri/binaries/*.exe
+# Test .accdb files (too large / proprietary for repo)
+*.accdb
+*.mdb
