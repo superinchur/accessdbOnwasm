@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.1.0] - 2026-03-22
+
+### Added
+- `src/hmi/`: SVG-based HMI frontend system for CEF applications
+  - `IDataSource` interface — repository pattern for pluggable data sources
+  - `DbSource` — pull source via bridge `/query` endpoint
+  - `ShmSource` — pull source via bridge `/shm` endpoint (Windows shared memory)
+  - `WsSource` — push source example via WebSocket (cache-and-return pattern)
+  - `DataBinder` — polls `IDataSource[]`, merges results, updates `[data-hmi-tag]` DOM elements
+  - `ScreenHost` — fetches SVG files, re-executes embedded `<script>` tags, manages binder lifecycle
+  - `data-hmi-tag` attribute binding with `data-on`/`data-off` state classes and `data-value` for SVG scripts
+  - `src/hmi/screens/plant1.svg` — demo SVG with PUMP_001, VALVE_001, TANK_001 tags
+- `src-bridge/shm.ts`: Windows named shared memory reader via Bun FFI (`kernel32.dll`)
+- `GET /shm?name=<n>&size=<n>` endpoint on bridge — exposes shared memory as `{ok:true, tags:{...}}`
+- `npm run dev:hmi` and `npm run build:hmi` scripts using `vite.hmi.config.ts`
+- `.vscode/launch.json` — VS Code debug configs for bridge dev server and bun:test
+
+### Fixed
+- `popup.ts`: replaced `fetchTagValues` import (removed in refactor) with `DbSource`; replaced `innerHTML` string interpolation with DOM API to prevent XSS; added `'` escaping in SQL WHERE clause
+
 ## [0.2.0] - 2026-03-22
 
 ### Added
