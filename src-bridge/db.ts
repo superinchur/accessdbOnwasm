@@ -63,6 +63,7 @@ function loadTable(entry: CacheEntry, tableName: string): void {
   })
 
   insertMany(rows)
+  stmt.finalize()
   entry.tables.add(tableName)
 }
 

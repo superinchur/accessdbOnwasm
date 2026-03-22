@@ -64,7 +64,9 @@ export async function waitForBridge(maxMs = 5000, intervalMs = 500): Promise<voi
     try {
       const res = await bridgeFetch(`${BRIDGE}/health`)
       if (res.ok) return
-    } catch {
+      if (res.status === 403) throw new Error('Bridge authentication failed — check token injection')
+    } catch (e) {
+      if (e instanceof Error && e.message.includes('authentication failed')) throw e
       // Connection refused — bridge not started yet
     }
     await new Promise(r => setTimeout(r, intervalMs))
@@ -83,10 +85,10 @@ export async function waitForBridge(maxMs = 5000, intervalMs = 500): Promise<voi
  * @returns         List of table names in the database.
  */
 export async function initDB(filePath: string): Promise<string[]> {
-  currentFile = filePath
   const res = await bridgeFetch(`${BRIDGE}/tables?file=${encodeURIComponent(filePath)}`)
   const body = await res.json() as { ok: boolean; tables?: string[]; error?: string }
   if (!body.ok) throw new Error(body.error ?? 'initDB failed')
+  currentFile = filePath
   return body.tables ?? []
 }
 
