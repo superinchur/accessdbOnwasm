@@ -1,0 +1,84 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #1a1a1a;
+  overflow: hidden;
+}
+
+#hmi-screen {
+  width: 100vw;
+  height: 100vh;
+}
+
+#hmi-screen svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* ── 상태 색상 ── */
+.hmi-state-on    { fill: #4CAF50 !important; }
+.hmi-state-off   { fill: #9E9E9E !important; }
+.hmi-state-alarm { fill: #F44336 !important; }
+
+/* ── 클릭 가능 요소 커서 ── */
+[data-hmi-tag] { cursor: pointer; }
+
+/* ── 팝업 ── */
+#hmi-popup {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+}
+
+.popup-overlay {
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.popup-box {
+  background: #2d2d2d;
+  border: 1px solid #555;
+  border-radius: 6px;
+  min-width: 280px;
+  font-family: monospace;
+  color: #d4d4d4;
+}
+
+.popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #444;
+  font-size: 15px;
+  font-weight: bold;
+  color: #9cdcfe;
+}
+
+.popup-header button {
+  background: none;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.popup-body {
+  padding: 16px;
+}
+
+.popup-value {
+  font-size: 28px;
+  color: #4fc3f7;
+  margin-bottom: 12px;
+}
+
+.popup-detail {
+  font-size: 13px;
+  color: #aaa;
+  line-height: 1.8;
+}
