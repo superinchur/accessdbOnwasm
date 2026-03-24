@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
+
+  <!-- 배경 -->
+  <rect width="800" height="500" fill="#1a1a1a"/>
+
+  <!-- 제목 -->
+  <text x="400" y="36" text-anchor="middle" fill="#9cdcfe" font-size="18" font-family="monospace">Plant 1</text>
+
+  <!-- ── 파이프 라인 ─────────────────────────────── -->
+  <line x1="120" y1="250" x2="340" y2="250" stroke="#555" stroke-width="10" stroke-linecap="round"/>
+  <line x1="460" y1="250" x2="620" y2="250" stroke="#555" stroke-width="10" stroke-linecap="round"/>
+  <line x1="620" y1="250" x2="620" y2="160" stroke="#555" stroke-width="10" stroke-linecap="round"/>
+
+  <!-- ── PUMP_001 ────────────────────────────────── -->
+  <!-- 상태 원 (RUN=초록, STOP=회색) -->
+  <circle cx="400" cy="250" r="50" fill="#9E9E9E"
+    data-hmi-tag="PUMP_001_STATUS"
+    data-on="RUN" data-off="STOP"/>
+  <text x="400" y="255" text-anchor="middle" fill="white" font-size="13" font-family="monospace"
+    style="pointer-events:none">PUMP</text>
+
+  <!-- 속도 표시 -->
+  <text x="400" y="330" text-anchor="middle" fill="#888" font-size="12" font-family="monospace">SPEED (rpm)</text>
+  <text x="400" y="352" text-anchor="middle" fill="#4fc3f7" font-size="20" font-family="monospace"
+    data-hmi-tag="PUMP_001_SPEED">—</text>
+
+  <!-- ── VALVE_001 ───────────────────────────────── -->
+  <!-- 밸브 마름모 (OPEN=초록, CLOSE=회색) -->
+  <polygon points="620,210 660,250 620,290 580,250" fill="#9E9E9E"
+    data-hmi-tag="VALVE_001_STATUS"
+    data-on="OPEN" data-off="CLOSE"/>
+  <text x="620" y="255" text-anchor="middle" fill="white" font-size="11" font-family="monospace"
+    style="pointer-events:none">V1</text>
+
+  <!-- ── TANK_001 ────────────────────────────────── -->
+  <rect x="550" y="60" width="140" height="100" rx="4"
+    fill="none" stroke="#555" stroke-width="3"/>
+  <text x="620" y="105" text-anchor="middle" fill="#4fc3f7" font-size="22" font-family="monospace"
+    data-hmi-tag="TANK_001_LEVEL">—</text>
+  <text x="620" y="125" text-anchor="middle" fill="#888" font-size="11" font-family="monospace">LEVEL (%)</text>
+
+  <!-- ── 라벨 ──────────────────────────────────────── -->
+  <text x="120" y="280" text-anchor="middle" fill="#666" font-size="11" font-family="monospace">IN</text>
+
+</svg>

@@ -7,3 +7,5 @@ src-tauri/binaries/*.exe
 # Test .accdb files (too large / proprietary for repo)
 *.accdb
 *.mdb
+debug.log
+.claude/worktrees/

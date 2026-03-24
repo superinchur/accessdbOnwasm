@@ -5,6 +5,7 @@
  *   GET  /health              → {ok:true}
  *   GET  /tables?file=<path>  → {ok:true, tables:[...]}
  *   POST /query               → {ok:true, columns:[...], rows:[[...],...]}
+ *   GET  /shm?name=<n>&size=<n> → {ok:true, tags:{TAG_ID:value,...}}
  *   OPTIONS /*                → 200 (CORS preflight)
  *
  * Auth: every request (except OPTIONS) must include X-Bridge-Token header
@@ -13,6 +14,7 @@
  * CORS headers are included on all responses to support CEF browser context.
  */
 import { getOrLoad, runQuery } from './db'
+import { readSharedMemoryTags } from './shm'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -99,6 +101,21 @@ export function makeHandler(token: string) {
         return ok({ ok: true, columns: result.columns, rows: result.rows })
       } catch (e) {
         log('query_error', { file, sql, error: (e as Error).message })
+        return err(400, (e as Error).message)
+      }
+    }
+
+    // GET /shm?name=<mapping_name>&size=<bytes>
+    if (req.method === 'GET' && url.pathname === '/shm') {
+      const name = url.searchParams.get('name')
+      if (!name) return err(400, 'Missing name parameter')
+      const size = parseInt(url.searchParams.get('size') ?? '4096', 10)
+      log('shm', { name, size })
+      try {
+        const tags = readSharedMemoryTags(name, size)
+        return ok({ ok: true, tags })
+      } catch (e) {
+        log('shm_error', { name, error: (e as Error).message })
         return err(400, (e as Error).message)
       }
     }

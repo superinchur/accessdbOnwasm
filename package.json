@@ -9,7 +9,9 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "build:bridge": "bun build --compile --target=bun-windows-x64 src-bridge/server.ts --outfile src-tauri/binaries/accessdb-bridge-x86_64-pc-windows-msvc.exe",
-    "tauri:build": "npm run build:bridge && npm run tauri build"
+    "tauri:build": "npm run build:bridge && npm run tauri build",
+    "dev:hmi": "vite --config vite.hmi.config.ts",
+    "build:hmi": "vite build --config vite.hmi.config.ts"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.10.1",
