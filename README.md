@@ -50,7 +50,7 @@ written to `%TEMP%\.accessdb-bridge-token`.
 import { waitForBridge, initDB, queryDB } from './src-bridge/cef-client'
 
 await waitForBridge()
-await initDB('C:\\path\\to\\data.accdb')
+await initDB('E:\\downloads\\system_bak.accdb')
 const { columns, rows } = await queryDB('SELECT * FROM Employees')
 ```
 
