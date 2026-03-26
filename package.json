@@ -8,6 +8,7 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
+    "bridge": "bun run src-bridge/server.ts",
     "build:bridge": "bun build --compile --target=bun-windows-x64 src-bridge/server.ts --outfile src-tauri/binaries/accessdb-bridge-x86_64-pc-windows-msvc.exe",
     "tauri:build": "npm run build:bridge && npm run tauri build"
   },

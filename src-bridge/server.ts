@@ -55,8 +55,14 @@ export function makeHandler(token: string) {
     }
 
     // Token auth on every non-preflight request
-    if (req.headers.get('x-bridge-token') !== token) {
-      log('auth_failed', { method: req.method, path: url.pathname })
+    const receivedToken = req.headers.get('x-bridge-token')
+    if (receivedToken !== token) {
+      log('auth_failed', { 
+        method: req.method, 
+        path: url.pathname,
+        received_length: receivedToken?.length ?? 0,
+        expected_length: token.length
+      })
       return err(403, 'Forbidden')
     }
 
@@ -96,10 +102,11 @@ export function makeHandler(token: string) {
       try {
         const entry = await getOrLoad(file)
         const result = runQuery(entry.db, sql)
-        return ok({ ok: true, columns: result.columns, rows: result.rows })
+        return ok({ ok: true, data: result })
       } catch (e) {
-        log('query_error', { file, sql, error: (e as Error).message })
-        return err(400, (e as Error).message)
+        const errorMsg = (e as Error).message;
+        log('query_error', { file, sql, error: errorMsg })
+        return err(400, `Query Error: ${errorMsg}`)
       }
     }
 

@@ -1,0 +1,40 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Chrome (Web Dev)",
+      "url": "http://127.0.0.1:1420",
+      "webRoot": "${workspaceFolder}",
+      "preLaunchTask": "npm: dev"
+    },
+    {
+      "type": "msedge",
+      "request": "launch",
+      "name": "Edge (Web Dev)",
+      "url": "http://127.0.0.1:1420",
+      "webRoot": "${workspaceFolder}",
+      "preLaunchTask": "npm: dev"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Bridge (Bun)",
+      "runtimeExecutable": "bun",
+      "args": ["run", "src-bridge/server.ts"],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "BRIDGE_PORT": "3456",
+        "BRIDGE_TOKEN": "test-token"
+      },
+      "console": "integratedTerminal"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Full Dev (Frontend + Bridge)",
+      "configurations": ["Chrome (Web Dev)", "Bridge (Bun)"]
+    }
+  ]
+}

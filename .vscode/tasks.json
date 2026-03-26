@@ -1,0 +1,45 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "npm: dev",
+      "type": "npm",
+      "script": "dev",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "custom",
+        "pattern": {
+          "regexp": "^$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".*",
+          "endsPattern": ".*Local:.*http://127\\.0\\.0\\.1:1420.*|.*ready in.*"
+        }
+      }
+    },
+    {
+      "label": "npm: bridge",
+      "type": "npm",
+      "script": "bridge",
+      "options": {
+        "env": {
+          "BRIDGE_PORT": "3456",
+          "BRIDGE_TOKEN": "test-token"
+        }
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "custom",
+        "pattern": {
+          "regexp": "^$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".*",
+          "endsPattern": ".*bridge_start.*"
+        }
+      }
+    }
+  ]
+}

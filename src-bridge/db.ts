@@ -69,7 +69,11 @@ function loadTable(entry: CacheEntry, tableName: string): void {
 
 function loadAllTables(entry: CacheEntry): void {
   for (const name of entry.mdb.getTableNames()) {
-    loadTable(entry, name)
+    try {
+      loadTable(entry, name)
+    } catch (e) {
+      console.error(`Failed to load table "${name}":`, (e as Error).message)
+    }
   }
 }
 
@@ -106,12 +110,18 @@ export async function getOrLoad(filePath: string): Promise<CacheEntry> {
 export function runQuery(
   db: Database,
   sql: string,
-): { columns: string[]; rows: SQLValue[][] } {
+): Record<string, SQLValue>[] {
   const stmt = db.query(sql)
   try {
     const columns = stmt.columnNames
     const rows = stmt.values() as SQLValue[][]
-    return { columns, rows }
+    return rows.map(row => {
+      const obj: Record<string, SQLValue> = {}
+      columns.forEach((col: string, i: number) => {
+        obj[col] = row[i]
+      })
+      return obj
+    })
   } finally {
     stmt.finalize()
   }

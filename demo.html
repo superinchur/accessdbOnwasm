@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AccessDB Bridge Tester</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --border: #e2e8f0;
+        }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 2rem;
+            line-height: 1.5;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border);
+        }
+        h1, h2 {
+            margin-top: 0;
+            color: #0f172a;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        .field {
+            margin-bottom: 1rem;
+        }
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 0.625rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.95rem;
+            box-sizing: border-box;
+        }
+        textarea {
+            font-family: inherit;
+            min-height: 100px;
+            resize: vertical;
+        }
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.625rem 1.25rem;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+        button.secondary {
+            background-color: #64748b;
+        }
+        button.secondary:hover {
+            background-color: #475569;
+        }
+        #output {
+            background-color: #0f172a;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Fira Code', 'Cascadia Code', monospace;
+            font-size: 0.875rem;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            max-height: 500px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .success { background: #dcfce7; color: #166534; }
+        .error { background: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AccessDB Bridge Tester</h1>
+        
+        <div class="card">
+            <h2>Connection Settings</h2>
+            <div class="grid">
+                <div class="field">
+                    <label for="bridgeUrl">Bridge URL</label>
+                    <input type="text" id="bridgeUrl" value="http://127.0.0.1:3456" placeholder="http://127.0.0.1:3456">
+                </div>
+                <div class="field">
+                    <label for="bridgeToken">Bridge Token</label>
+                    <input type="text" id="bridgeToken" value="test-token" placeholder="Enter token">
+                </div>
+            </div>
+            <div class="field">
+                <label for="dbFile">Database File Path (.accdb)</label>
+                <input type="text" id="dbFile" value="" placeholder="e.g. C:\data\sample.accdb">
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Bridge Functions</h2>
+            <div class="actions">
+                <button id="btnHealth">Check Health</button>
+                <button id="btnTables">List Tables</button>
+            </div>
+            <div class="field" style="margin-top: 1.5rem;">
+                <label for="sqlQuery">SQL Query</label>
+                <textarea id="sqlQuery" placeholder="SELECT * FROM TableName LIMIT 10">SELECT * FROM sqlite_master</textarea>
+            </div>
+            <div class="actions">
+                <button id="btnQuery">Execute Query</button>
+                <button id="btnClear" class="secondary">Clear Output</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Output</h2>
+            <pre id="output">Results will appear here...</pre>
+        </div>
+    </div>
+
+    <script>
+        const bridgeUrlInput = document.getElementById('bridgeUrl');
+        const bridgeTokenInput = document.getElementById('bridgeToken');
+        const dbFileInput = document.getElementById('dbFile');
+        const sqlQueryInput = document.getElementById('sqlQuery');
+        const outputEl = document.getElementById('output');
+
+        function log(data, isError = false) {
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = isError ? '[ERROR] ' : '[INFO] ';
+            const message = typeof data === 'object' ? JSON.stringify(data, null, 2) : data;
+            outputEl.textContent = `[${timestamp}] ${prefix}${message}\n\n` + outputEl.textContent;
+        }
+
+        async function bridgeRequest(endpoint, options = {}) {
+            const url = `${bridgeUrlInput.value.trim().replace(/\/$/, '')}${endpoint}`;
+            const headers = {
+                'X-Bridge-Token': bridgeTokenInput.value.trim(),
+                ...options.headers
+            };
+
+            try {
+                const response = await fetch(url, { ...options, headers });
+                const data = await response.json();
+                if (!response.ok) throw data;
+                return data;
+            } catch (err) {
+                log(err, true);
+                throw err;
+            }
+        }
+
+        document.getElementById('btnHealth').onclick = async () => {
+            try {
+                const res = await bridgeRequest('/health');
+                log({ status: 'Connected', ...res });
+            } catch (e) {}
+        };
+
+        document.getElementById('btnTables').onclick = async () => {
+            const file = dbFileInput.value;
+            if (!file) return alert('Please enter a file path.');
+            try {
+                const res = await bridgeRequest(`/tables?file=${encodeURIComponent(file)}`);
+                log({ file, tables: res.tables });
+            } catch (e) {}
+        };
+
+        document.getElementById('btnQuery').onclick = async () => {
+            const file = dbFileInput.value;
+            const sql = sqlQueryInput.value;
+            if (!file || !sql) return alert('Please enter file path and SQL.');
+            try {
+                const res = await bridgeRequest('/query', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ file, sql })
+                });
+                log({
+                    sql,
+                    rowCount: res.data?.length || 0,
+                    data: res.data
+                });
+            } catch (e) {}
+        };
+
+        document.getElementById('btnClear').onclick = () => {
+            outputEl.textContent = 'Results cleared.';
+        };
+    </script>
+</body>
+</html>
