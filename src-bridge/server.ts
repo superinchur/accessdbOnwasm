@@ -110,6 +110,45 @@ export function makeHandler(token: string) {
       }
     }
 
+    // POST /api  body: { __cmd, param, ... }
+    if (req.method === 'POST' && url.pathname === '/api') {
+      let body: { __cmd?: string; param?: any };
+      try {
+        body = await req.json() as { __cmd?: string; param?: any };
+      } catch {
+        return err(400, 'Invalid JSON body');
+      }
+
+      const { __cmd } = body;
+      if (!__cmd) return err(400, 'Missing __cmd field');
+
+      log('hmi_command', { cmd: __cmd });
+
+      // Specialized HiView Handlers
+      switch (__cmd) {
+        case 'start_runtime':
+          return ok({ ok: true, data: 'debug' });
+
+        case 'req_project':
+          try {
+            // Default project path - should be configurable
+            const projectPath = 'C:\\HiView\\Project\\project.hprj';
+            const entry = await getOrLoad(projectPath);
+            const data = runQuery(entry.db, 'SELECT * FROM ProjectConfig');
+            return ok({ ok: true, state: 1, data: data[0] || {} });
+          } catch (e) {
+            return ok({ ok: true, state: 0, error: (e as Error).message });
+          }
+
+        case 'getvalue2':
+          // For now, return mock values or query DB if tags are mapped
+          return ok({ ok: true, data: [] });
+
+        default:
+          return ok({ ok: true, info: `Command ${__cmd} received but not fully implemented.` });
+      }
+    }
+
     return err(404, 'Not found')
   }
 }
